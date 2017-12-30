@@ -1,5 +1,5 @@
-# soundtouch
-Bose SoundTouch App
+# SoundTouch
+Bose SoundTouch App for Linux
 
 This script can control a Bose SoundTouch Speaker via the local network connection
 
