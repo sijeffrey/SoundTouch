@@ -1,0 +1,80 @@
+# Script to set BOSE soundtouch speaker
+# Written by Simon Jeffrey
+# 30 Dec 2017
+
+# Sound Touch Speaker IP/PORT
+IP="192.168.11.12"
+PORT="17000"
+
+# Device Configuration
+device='/dev/tcp/'$IP'/'$PORT
+
+# Get Preset Info & Volume
+volume="$(echo 'sys volume' | nc $IP $PORT -w 2 | awk 'NR==1{print $5}')"
+presets="$(echo 'ws getpresets' | nc $IP $PORT -w 2 | sed -n '/itemName/{n;p}' | sed 's/.*text://;s/\"//g')"
+declare preset=(0 1 2 3 4 5 6)
+preset[1]="$(echo "$presets" | awk 'NR==1 {print}')"
+preset[2]="$(echo "$presets" | awk 'NR==2 {print}')"
+preset[3]="$(echo "$presets" | awk 'NR==3 {print}')"
+preset[4]="$(echo "$presets" | awk 'NR==4 {print}')"
+preset[5]="$(echo "$presets" | awk 'NR==5 {print}')"
+preset[6]="$(echo "$presets" | awk 'NR==6 {print}')"
+
+# Help Information
+help=$"
+\n
+Bose SoundTouch App\n
+Written by Simon Jeffrey\n
+\n
+Help:\n
+\n
+Bose {power|up|down|volume|preset|presets}\n
+\n
+where:\n
+\n
+power   - toggles the speaker ON/OFF\n
+up      - increases the volume\n
+down    - decreases the volume\n
+volume  - display the current volume\n
+preset  - select preset 1..6 (bose 1 = station preset 1)\n
+presets - show current preset information\n"
+
+if [ $# != 1 ]; then 
+  echo -e $help
+  exit
+fi
+
+case $1 in
+  power)
+    echo "toggle the power"
+    echo 'sys power' > $device
+    ;;
+  up)
+    echo "volume up"
+    echo 'sys volume up 10' > $device
+    echo "new volume level" $(expr $volume + 10)
+    ;;
+  down)
+    echo "volume down"
+    echo 'sys volume down 10' > $device 
+    echo "new volume level" $(expr $volume - 10)
+    ;;
+  1|2|3|4|5|6)
+    echo 'preset station '$1' selected (' ${preset[$1]} ')'
+    echo 'sys presetkey '$1' p' > $device
+    ;;
+  volume)
+    echo 'volume is currently set to '$volume
+    ;;
+  presets)
+    echo 'presets are: '
+    echo '1) '${preset[1]}
+    echo '2) '${preset[2]}
+    echo '3) '${preset[3]}
+    echo '4) '${preset[4]}
+    echo '5) '${preset[5]}
+    echo '6) '${preset[6]}
+    ;;
+  *)
+    echo -e $help
+esac
