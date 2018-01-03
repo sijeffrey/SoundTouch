@@ -40,7 +40,7 @@ bose [<preset#>]\n
 where:\n
 \n
 power\t\tToggles the speaker ON/OFF\n
-<dir>\t\t+ or - to increase | decrease the volume by 5\n
+<dir>\t\t<+|-|v> to increase (+), decrease (-), set absolut (v) volume level\n
 <step>\t\t0...99 as volume step size, default is 5\n
 volume\t\tQuery the current volume\n
 presets\tQuery current available presets\n
@@ -48,6 +48,7 @@ presets\tQuery current available presets\n
 \n
 bose - \t# Decrease volume by 5\n 
 bose +20 \t# Increase volume by 20\n 
+bose v12 \t# Set volume to the absolut level of 12\n 
 bose 2 \t# Select preset channel #2\n 
 "
 
@@ -62,15 +63,16 @@ fi
 #   bose -
 #   bose +50
 ###############################################################
-re="^[\+\-][0-9]{0,3}$"
+re="^[v+\-][0-9]{0,3}$"
 
 if [[ "$1" =~ $re ]]; then
-  dir=$(echo "$1" | grep -oE --color=never '^[\+\-]')
-  delta=$(echo "$1" | sed -r 's/^[\+\-]([0-9]{0,2}).*/\1/')
+  dir=$(echo "$1" | grep -oE --color=never '^[v+\-]')
+  delta=$(echo "$1" | sed -r 's/^[v+\-]([0-9]{0,2}).*/\1/')
   [[ -z "$delta" ]] && delta="$dvd"
 
   [[ "$dir" == "+" ]] && cmd="sys volume up $delta"; 
   [[ "$dir" == "-" ]] && cmd="sys volume down $delta";
+  [[ "$dir" == "v" ]] && cmd="sys volume $delta";
   echo "$cmd" > $device
   printf "Volume is:  [%d]\n" `volume`
 
